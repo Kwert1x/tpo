@@ -1,0 +1,134 @@
+Лабораторная работа 1: Запуск OpenBMC с использованием QEMU
+
+Среда выполнения:
+- WSL2 Ubuntu
+- Рабочая папка: ~/tpo
+- Образ: ~/tpo/obmc-phosphor-image-romulus.static.mtd
+- QEMU: qemu-system-arm 8.2.2
+- Машина QEMU: romulus-bmc
+
+Команда запуска QEMU:
+qemu-system-arm -m 256 -M romulus-bmc -nographic \
+  -drive file=obmc-phosphor-image-romulus.static.mtd,format=raw,if=mtd \
+  -net nic \
+  -net user,hostfwd=:0.0.0.0:2222-:22,hostfwd=:0.0.0.0:2443-:443,hostfwd=udp:0.0.0.0:2623-:623,hostname=qemu
+
+Проверка доступности:
+- SSH: 127.0.0.1:2222 открыт
+- HTTPS/Redfish: https://127.0.0.1:2443 отвечает HTTP/2 401 без авторизации и возвращает Redfish JSON с авторизацией
+- IPMI: 127.0.0.1:2623/udp отвечает
+
+Результат команды obmcutil state:
+CurrentBMCState     : xyz.openbmc_project.State.BMC.BMCState.Ready
+CurrentPowerState   : xyz.openbmc_project.State.Chassis.PowerState.Off
+CurrentHostState    : xyz.openbmc_project.State.Host.HostState.TransitioningToOff
+BootProgress        : xyz.openbmc_project.State.Boot.Progress.ProgressStages.Unspecified
+OperatingSystemState: xyz.openbmc_project.State.OperatingSystem.Status.OSStatus.Inactive
+
+Проверка poweron/poweroff:
+- Без флага --force команды obmcutil poweron/poweroff отклонялись, так как шасси находилось в состоянии TransitioningToOff.
+- С корректным синтаксисом obmcutil --force poweron и obmcutil --force poweroff команды были выполнены.
+- После завершения проверки BMC остался в состоянии Ready, питание шасси Off.
+
+Результат команды из пункта 5:
+Команда:
+ipmitool -I lanplus -C 17 -p 2623 -H 127.0.0.1 -U root -P 0penBmc fru print
+
+Вывод:
+FRU Device Description : Builtin FRU Device (ID 0)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : cpu0 (ID 1)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : cpu1 (ID 2)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : system (ID 3)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm0 (ID 4)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm1 (ID 5)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm2 (ID 6)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm3 (ID 7)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm4 (ID 8)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm5 (ID 9)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm6 (ID 10)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm7 (ID 11)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm8 (ID 12)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm9 (ID 13)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm10 (ID 14)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm11 (ID 15)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm12 (ID 16)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm13 (ID 17)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm14 (ID 18)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : dimm15 (ID 19)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : fan0 (ID 50)
+
+FRU Device Description : fan1 (ID 51)
+ Device not present (Requested sensor, data, or record not found)
+
+FRU Device Description : fan2 (ID 52)
+ Device not present (Requested sensor, data, or record not found)
+
+Проверка Redfish:
+Команда:
+curl -k -s -u root:0penBmc https://127.0.0.1:2443/redfish/v1/Systems
+
+Ответ:
+{
+  "@odata.id": "/redfish/v1/Systems",
+  "@odata.type": "#ComputerSystemCollection.ComputerSystemCollection",
+  "Members": [
+    {
+      "@odata.id": "/redfish/v1/Systems/system"
+    }
+  ],
+  "Members@odata.count": 1,
+  "Name": "Computer System Collection"
+}
+
+Логи службы BMC:
+Sep 26 03:08:07 romulus systemd[1]: Starting Phosphor BMC State Manager...
+Sep 26 03:08:10 romulus systemd[1]: Started Phosphor BMC State Manager.
+Sep 26 03:08:16 romulus phosphor-bmc-state-manager[318]: BMC_READY
+Sep 26 03:08:16 romulus phosphor-bmc-state-manager[318]: Setting the BMCState field to xyz.openbmc_project.State.BMC.BMCState.Ready
+
+Ресурсы QEMU:
+PID 791, CPU около 62-64%, RAM около 1.35-1.43 GiB RSS.
+Общая память WSL во время проверки: 6.6 GiB, занято около 1.9 GiB, доступно около 4.7 GiB.
+
+Краткий вывод:
+OpenBMC успешно запущен в QEMU на машине romulus-bmc. Доступ по SSH, IPMI и Redfish проверен. BMC перешел в состояние Ready. В эмуляции Romulus большая часть FRU-устройств отсутствует, поэтому ipmitool fru print возвращает описания устройств с сообщениями Device not present. Нагрузка QEMU в WSL заметная по RSS и накопленному CPU, но система остается доступной для выполнения команд лабораторной.

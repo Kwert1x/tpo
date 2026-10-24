@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test artifacts
+artifacts/
+screenshots/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Large local OpenBMC/QEMU images
+*.mtd
+*.wic
+*.qcow2
+
+# Temporary Office files
+~$*.docx
+~$*.xlsx
+~$*.pptx
