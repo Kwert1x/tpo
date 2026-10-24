@@ -1,0 +1,21 @@
+[2026-10-24 14:33:58,891] Kwert1x/INFO/locust.main: Starting Locust 2.32.6
+[2026-10-24 14:33:58,891] Kwert1x/INFO/locust.main: Run time limit set to 30 seconds
+[2026-10-24 14:33:58,892] Kwert1x/INFO/locust.runners: Ramping to 10 users at a rate of 2.00 per second
+[2026-10-24 14:34:02,898] Kwert1x/INFO/locust.runners: All users spawned: {"PublicApiUser": 10} (10 total users)
+[2026-10-24 14:34:28,760] Kwert1x/INFO/locust.main: --run-time limit reached, shutting down
+[2026-10-24 14:34:28,857] Kwert1x/INFO/locust.main: writing html report to file: reports/public_api.html
+[2026-10-24 14:34:28,861] Kwert1x/INFO/locust.main: Shutting down (exit code 0)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      GET JSONPlaceholder /posts                                                        86     0(0.00%) |    160     112     550    120 |    2.90        0.00
+GET      GET wttr.in Novosibirsk                                                           40     0(0.00%) |    680     583    1195    670 |    1.35        0.00
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                       126     0(0.00%) |    325     112    1195    120 |    4.26        0.00
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      GET JSONPlaceholder /posts                                                            120    120    120    120    440    450    450    550    550    550    550     86
+GET      GET wttr.in Novosibirsk                                                               670    670    670    670    680    790   1200   1200   1200   1200   1200     40
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                            120    450    660    660    670    670    690    790   1200   1200   1200    126
