@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.5, pluggy-1.7.0 -- /home/kwertix/tpo/tpo_runtime/venv/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.12.3', 'Platform': 'Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.39', 'Packages': {'pytest': '8.3.5', 'pluggy': '1.7.0'}, 'Plugins': {'metadata': '3.1.1', 'html': '4.1.1'}}
+rootdir: /home/kwertix/tpo/tpo_lab5/lab5
+configfile: pytest.ini
+plugins: metadata-3.1.1, html-4.1.1
+collecting ... collected 5 items
+
+test_redfish.py::test_authentication_returns_session_token PASSED        [ 20%]
+test_redfish.py::test_system_information_contains_status_and_power_state PASSED [ 40%]
+test_redfish.py::test_power_on_action_changes_power_state SKIPPED (T...) [ 60%]
+test_redfish.py::test_cpu_temperature_is_within_normal_range SKIPPED     [ 80%]
+test_redfish.py::test_cpu_sensors_match_redfish_and_ipmi SKIPPED (Th...) [100%]
+
+---- generated xml file: /home/kwertix/tpo/tpo_lab5/lab5/reports/junit.xml -----
+- Generated html report: file:///home/kwertix/tpo/tpo_lab5/lab5/reports/pytest.html -
+=========================== short test summary info ============================
+SKIPPED [1] test_redfish.py:335: The QEMU BMC accepted ResetType=On with HTTP 204, but the emulator has no managed host whose PowerState can change to On
+SKIPPED [1] test_redfish.py:349: This QEMU image exposes no CPU temperature telemetry in Redfish; the range assertion runs when the target publishes CPU sensors
+SKIPPED [1] test_redfish.py:373: This QEMU image exposes no CPU temperature telemetry in Redfish; comparison runs on a target that publishes CPU sensors
+======================== 2 passed, 3 skipped in 18.71s =========================
