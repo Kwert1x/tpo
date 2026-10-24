@@ -1,0 +1,17 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-8.3.5, pluggy-1.6.0 -- C:\Users\K_x\Documents\Codex\2026-09-26\ye\work\lab4_selenium_openbmc\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\K_x\Documents\Codex\2026-09-26\ye\work\lab4_selenium_openbmc
+configfile: pytest.ini
+collecting ... collected 5 items
+
+tests/test_openbmc_auth_ui.py::test_successful_login PASSED              [ 20%]
+tests/test_openbmc_auth_ui.py::test_invalid_login_shows_error PASSED     [ 40%]
+tests/test_openbmc_auth_ui.py::test_repeated_invalid_login_is_handled PASSED [ 60%]
+tests/test_openbmc_webui_lab3.py::test_power_action_is_available_in_web_ui SKIPPED [ 80%]
+tests/test_openbmc_webui_lab3.py::test_event_logs_are_available_after_opening_logs_page SKIPPED [100%]
+
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_openbmc_webui_lab3.py:22: Power or operations page was not found in the current OpenBMC Web UI build
+SKIPPED [1] tests\test_openbmc_webui_lab3.py:33: Logs or event page was not found in the current OpenBMC Web UI build
+================== 3 passed, 2 skipped in 325.03s (0:05:25) ===================
