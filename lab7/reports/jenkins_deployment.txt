@@ -1,0 +1,14 @@
+Дата проверки: 24.10.2026
+Контейнер: tpo-jenkins
+Состояние: Up
+Jenkins URL: http://localhost:8080
+Проверка /login: HTTP 200
+Образ OpenBMC: /opt/openbmc/obmc-phosphor-image-romulus.static.mtd (readable)
+Python: 3.13.5
+pytest: 8.3.5
+Locust: 2.32.6
+QEMU: 10.0.13
+Chromium: 156.0.8078.47
+Установленные Jenkins-плагины: workflow-aggregator, git, credentials-binding, junit
+Проверка QEMU внутри контейнера: OpenBMC Redfish API вернул HTTP 200
+Проверка остановки QEMU: процесс завершён, PID-файл удалён

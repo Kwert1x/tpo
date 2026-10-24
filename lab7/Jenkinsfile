@@ -1,0 +1,152 @@
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        timeout(time: 25, unit: 'MINUTES')
+    }
+
+    environment {
+        REPOSITORY_URL = 'https://github.com/Kwert1x/tpo.git'
+        OPENBMC_BASE_URL = 'https://127.0.0.1:2443'
+        OPENBMC_IMAGE = '/opt/openbmc/obmc-phosphor-image-romulus.static.mtd'
+        SELENIUM_BROWSER = 'chrome'
+        SELENIUM_HEADLESS = '1'
+        PYTHONUNBUFFERED = '1'
+    }
+
+    stages {
+        stage('Prepare sources') {
+            steps {
+                sh '''#!/usr/bin/env bash
+                    set -eu
+                    rm -rf sources artifacts runtime
+                    mkdir -p sources artifacts/qemu artifacts/api artifacts/webui artifacts/load runtime
+                    git clone --depth 1 --branch lab5 "$REPOSITORY_URL" sources/lab5
+                    git clone --depth 1 --branch lab4 "$REPOSITORY_URL" sources/lab4
+                    git clone --depth 1 --branch lab6 "$REPOSITORY_URL" sources/lab6
+                    python --version | tee artifacts/environment.txt
+                    pytest --version | tee -a artifacts/environment.txt
+                    locust --version | tee -a artifacts/environment.txt
+                    qemu-system-arm --version | head -1 | tee -a artifacts/environment.txt
+                    chromium --version | tee -a artifacts/environment.txt
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'artifacts/environment.txt', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Start OpenBMC QEMU') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'openbmc-credentials',
+                    usernameVariable: 'OPENBMC_USERNAME',
+                    passwordVariable: 'OPENBMC_PASSWORD'
+                )]) {
+                    sh '''#!/usr/bin/env bash
+                        set -eu
+                        lab7/scripts/start_openbmc_qemu.sh
+                        lab7/scripts/wait_for_openbmc.sh
+                    '''
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'artifacts/qemu/**', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('OpenBMC API tests') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'openbmc-credentials',
+                    usernameVariable: 'OPENBMC_USERNAME',
+                    passwordVariable: 'OPENBMC_PASSWORD'
+                )]) {
+                    sh '''#!/usr/bin/env bash
+                        set -euo pipefail
+                        cd sources/lab5/lab5
+                        RUN_POWER_TEST=1 pytest test_redfish.py \
+                            --junitxml="$WORKSPACE/artifacts/api/junit.xml" \
+                            --html="$WORKSPACE/artifacts/api/report.html" \
+                            --self-contained-html \
+                            2>&1 | tee "$WORKSPACE/artifacts/api/console.txt"
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit testResults: 'artifacts/api/junit.xml', allowEmptyResults: true
+                    archiveArtifacts artifacts: 'artifacts/api/**', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('OpenBMC WebUI tests') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'openbmc-credentials',
+                    usernameVariable: 'OPENBMC_USERNAME',
+                    passwordVariable: 'OPENBMC_PASSWORD'
+                )]) {
+                    sh '''#!/usr/bin/env bash
+                        set -euo pipefail
+                        cd sources/lab4/lab4
+                        pytest \
+                            --junitxml="$WORKSPACE/artifacts/webui/junit.xml" \
+                            --html="$WORKSPACE/artifacts/webui/report.html" \
+                            --self-contained-html \
+                            2>&1 | tee "$WORKSPACE/artifacts/webui/console.txt"
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit testResults: 'artifacts/webui/junit.xml', allowEmptyResults: true
+                    archiveArtifacts artifacts: 'artifacts/webui/**,sources/lab4/lab4/artifacts/**', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('OpenBMC load test') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'openbmc-credentials',
+                    usernameVariable: 'OPENBMC_USERNAME',
+                    passwordVariable: 'OPENBMC_PASSWORD'
+                )]) {
+                    sh '''#!/usr/bin/env bash
+                        set -euo pipefail
+                        cd sources/lab6/lab6
+                        locust -f locustfile.py OpenBMCUser \
+                            --headless \
+                            --users 10 \
+                            --spawn-rate 2 \
+                            --run-time 30s \
+                            --csv "$WORKSPACE/artifacts/load/openbmc" \
+                            --html "$WORKSPACE/artifacts/load/report.html" \
+                            --only-summary \
+                            2>&1 | tee "$WORKSPACE/artifacts/load/console.txt"
+                    '''
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'artifacts/load/**', allowEmptyArchive: true
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'lab7/scripts/stop_openbmc_qemu.sh || true'
+            archiveArtifacts artifacts: 'artifacts/**', allowEmptyArchive: true
+        }
+    }
+}
